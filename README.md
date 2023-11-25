@@ -1,4 +1,4 @@
-# Predicting Blood Pressure From PPG and ECG
+# Blood Pressure Prediction Tool From PPG and ECG
 
 ## Files Included:
 

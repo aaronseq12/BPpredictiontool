@@ -2,8 +2,6 @@
 
 ## Files Included:
 
-* **Predict_BP_From_ECG_and_PPG.pdf** - PDF of the paper we produced 
-
 *  **Images** - Folder containing various image outputs of the models
 
 *  **Code** - Folder containing the LSTM and GAN code

@@ -2,18 +2,16 @@ from tensorflow.keras.layers import Input, LSTM, TimeDistributed, Dense
 from tensorflow.keras.models import Model
 from data_preprocessing import load_and_preprocess_data
 
-def train_lstm_model():
+def train_blood_pressure_model():
     """
     Trains the LSTM model for blood pressure prediction and saves it.
     """
     # Load and preprocess the data
-    input_data, abp_data = load_and_preprocess_data()
+    input_signals, abp_targets = load_and_preprocess_data()
 
     # Split data into training and validation sets
-    X_train = input_data[:9600]
-    y_train = abp_data[:9600]
-    X_val = input_data[9600:10800]
-    y_val = abp_data[9600:10800]
+    X_train, y_train = input_signals[:9600], abp_targets[:9600]
+    X_val, y_val = input_signals[9600:10800], abp_targets[9600:10800]
 
     # Define the LSTM model architecture
     inputs = Input(shape=(1000, 2))
@@ -22,12 +20,12 @@ def train_lstm_model():
     model = Model(inputs, sequence_prediction)
 
     # Compile and train the model
-    model.compile('adam', 'mse')
+    model.compile(optimizer='adam', loss='mse')
     model.fit(X_train, y_train, epochs=10, batch_size=64, validation_data=(X_val, y_val))
 
     # Save the trained model
-    model.save('lstm_model.h5')
-    print("LSTM model trained and saved as lstm_model.h5")
+    model.save('blood_pressure_model.keras')
+    print("LSTM model trained and saved as blood_pressure_model.keras")
 
 if __name__ == '__main__':
-    train_lstm_model()
+    train_blood_pressure_model()

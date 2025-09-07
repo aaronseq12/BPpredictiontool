@@ -41,8 +41,8 @@ def train_gan(epochs=10000, batch_size=32):
     Trains the GAN to generate synthetic ABP data.
     """
     # Load and preprocess the data
-    _, abp_data = load_and_preprocess_data()
-    X_train = abp_data[:9600]
+    _, abp_targets = load_and_preprocess_data()
+    X_train = abp_targets[:9600]
 
     # Build and compile the models
     optimizer = Adam(0.0002, 0.5)
@@ -52,31 +52,46 @@ def train_gan(epochs=10000, batch_size=32):
 
     generator = build_generator()
 
-    z = Input(shape=(100,))
-    generated_signal = generator(z)
+    # The generator takes noise as input and generates signals
+    noise = Input(shape=(100,))
+    generated_signal = generator(noise)
 
+    # For the combined model we will only train the generator
     discriminator.trainable = False
+
+    # The discriminator takes generated signals as input and determines validity
     validity = discriminator(generated_signal)
 
-    combined = Model(z, validity)
-    combined.compile(loss='binary_crossentropy', optimizer=optimizer)
+    # The combined model (stacked generator and discriminator)
+    # Trains the generator to fool the discriminator
+    combined_model = Model(noise, validity)
+    combined_model.compile(loss='binary_crossentropy', optimizer=optimizer)
 
     # Training loop
     for epoch in range(epochs):
-        # Train Discriminator
+        # ---------------------
+        #  Train Discriminator
+        # ---------------------
+        # Select a random batch of real signals
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         real_signals = X_train[idx]
 
+        # Generate a batch of new signals
         noise = np.random.normal(0, 1, (batch_size, 100))
         generated_signals = generator.predict(noise)
 
+        # Train the discriminator
         d_loss_real = discriminator.train_on_batch(real_signals, np.ones((batch_size, 1)))
         d_loss_fake = discriminator.train_on_batch(generated_signals, np.zeros((batch_size, 1)))
         d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-        # Train Generator
+        # ---------------------
+        #  Train Generator
+        # ---------------------
         noise = np.random.normal(0, 1, (batch_size, 100))
-        g_loss = combined.train_on_batch(noise, np.ones((batch_size, 1)))
+
+        # Train the generator (to have the discriminator label samples as valid)
+        g_loss = combined_model.train_on_batch(noise, np.ones((batch_size, 1)))
 
         # Print progress
         print(f"{epoch} [D loss: {d_loss[0]:.4f}, acc.: {100*d_loss[1]:.2f}%] [G loss: {g_loss:.4f}]")

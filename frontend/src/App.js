@@ -1,25 +1,15 @@
 /**
  * Advanced Blood Pressure Prediction Tool - Main Application
+ * Simplified version using existing components
  */
-import React, { useState, useCallback, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // Components
-import Header from './components/Layout/Header';
-import Footer from './components/Layout/Footer';
 import PredictionInterface from './components/Prediction/PredictionInterface';
-import DataVisualization from './components/Visualization/DataVisualization';
-import HealthMonitor from './components/HealthMonitor/HealthMonitor';
-import AboutPage from './components/Pages/AboutPage';
-import HelpPage from './components/Pages/HelpPage';
-
-// Context
-import { AppContextProvider } from './context/AppContext';
 
 // Styles
-import './styles/globals.css';
+import './index.css';
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +19,8 @@ const App = () => {
   useEffect(() => {
     const checkApiHealth = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/health`);
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${apiUrl}/health`);
         const healthData = await response.json();
         setApiHealth(healthData);
       } catch (error) {
@@ -43,157 +34,72 @@ const App = () => {
     checkApiHealth();
   }, []);
 
-  const pageVariants = {
-    initial: {
-      opacity: 0,
-      y: 20
-    },
-    in: {
-      opacity: 1,
-      y: 0
-    },
-    out: {
-      opacity: 0,
-      y: -20
-    }
-  };
-
-  const pageTransition = {
-    type: 'tween',
-    ease: 'anticipate',
-    duration: 0.3
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Loading Blood Pressure Prediction Tool...</p>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <AppContextProvider>
-      <Router>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          <Header apiHealth={apiHealth} />
-          
-          <main className="container mx-auto px-4 py-8">
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <motion.div
-                      key="prediction"
-                      initial="initial"
-                      animate="in"
-                      exit="out"
-                      variants={pageVariants}
-                      transition={pageTransition}
-                    >
-                      <PredictionInterface />
-                    </motion.div>
-                  }
-                />
-                <Route
-                  path="/visualization"
-                  element={
-                    <motion.div
-                      key="visualization"
-                      initial="initial"
-                      animate="in"
-                      exit="out"
-                      variants={pageVariants}
-                      transition={pageTransition}
-                    >
-                      <DataVisualization />
-                    </motion.div>
-                  }
-                />
-                <Route
-                  path="/monitor"
-                  element={
-                    <motion.div
-                      key="monitor"
-                      initial="initial"
-                      animate="in"
-                      exit="out"
-                      variants={pageVariants}
-                      transition={pageTransition}
-                    >
-                      <HealthMonitor />
-                    </motion.div>
-                  }
-                />
-                <Route
-                  path="/about"
-                  element={
-                    <motion.div
-                      key="about"
-                      initial="initial"
-                      animate="in"
-                      exit="out"
-                      variants={pageVariants}
-                      transition={pageTransition}
-                    >
-                      <AboutPage />
-                    </motion.div>
-                  }
-                />
-                <Route
-                  path="/help"
-                  element={
-                    <motion.div
-                      key="help"
-                      initial="initial"
-                      animate="in"
-                      exit="out"
-                      variants={pageVariants}
-                      transition={pageTransition}
-                    >
-                      <HelpPage />
-                    </motion.div>
-                  }
-                />
-              </Routes>
-            </AnimatePresence>
-          </main>
-
-          <Footer />
-          
-          {/* Toast notifications */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                style: {
-                  background: '#10b981',
-                },
-              },
-              error: {
-                style: {
-                  background: '#ef4444',
-                },
-              },
-            }}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-md">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-indigo-600">
+              Blood Pressure Prediction Tool
+            </h1>
+            <div className="flex items-center space-x-2">
+              <span className={`inline-block w-3 h-3 rounded-full ${
+                apiHealth?.status === 'healthy' ? 'bg-green-500' : 'bg-red-500'
+              }`}></span>
+              <span className="text-sm text-gray-600">
+                API: {apiHealth?.status === 'healthy' ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+          </div>
         </div>
-      </Router>
-    </AppContextProvider>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <PredictionInterface />
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t mt-auto">
+        <div className="container mx-auto px-4 py-4 text-center text-gray-600">
+          <p>&copy; 2024 Blood Pressure Prediction Tool. Built with AI/ML.</p>
+        </div>
+      </footer>
+
+      {/* Toast notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
+    </div>
   );
 };
 
